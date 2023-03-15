@@ -2,16 +2,17 @@
 	<view class="background">
 		<view class="content">
 			<view class="title">登录</view>
-			<u--form>
-				<u-form-item borderBottom>
-					<u--input type="email" placeholder="请输入邮箱" prefixIcon="email" clearable border="none" />
+			<u--form ref="loginForm" :model="loginFormData" :rules="loginFormRules">
+				<u-form-item borderBottom prop="email">
+					<u--input v-model="loginFormData.email" type="email" placeholder="请输入邮箱" prefixIcon="email"
+						clearable border="none" />
 				</u-form-item>
-				<u-form-item borderBottom>
-					<u--input type="password" placeholder="请输入密码" prefixIcon="lock-open" clearable password
-						border="none" />
+				<u-form-item borderBottom prop="password">
+					<u--input v-model="loginFormData.password" type="password" placeholder="请输入密码"
+						prefixIcon="lock-open" clearable password border="none" />
 				</u-form-item>
 				<u-form-item>
-					<u-button class="login-button" type="primary" text="登录" />
+					<u-button class="login-button" type="primary" text="登录" @click="login" />
 				</u-form-item>
 			</u--form>
 			<view class="other-box">
@@ -23,11 +24,36 @@
 </template>
 
 <script>
+	import {
+		login
+	} from '@/api/user.js';
+
+	import {
+		request
+	} from '@/utils/request.js';
+
 	export default {
 		name: 'login',
 		data() {
 			return {
-
+				loginFormData: {
+					email: null,
+					password: null
+				},
+				loginFormRules: {
+					email: [{
+						type: 'email',
+						required: true,
+						message: '请输入邮箱',
+						trigger: ['blur', 'change']
+					}],
+					password: [{
+						type: 'string',
+						required: true,
+						message: '请输入密码',
+						trigger: ['blur', 'change']
+					}]
+				}
 			}
 		},
 		methods: {
@@ -35,6 +61,16 @@
 				uni.navigateTo({
 					url: '/pages/user/register'
 				})
+			},
+			async login() {
+				// 表单验证
+				this.$refs.loginForm.validate().then(async res => {
+					if (res) {
+						// 发起登录请求 并 保存返回值
+						let response = await login(this.loginFormData);
+						console.log(response);
+					}
+				});
 			}
 		}
 	}
