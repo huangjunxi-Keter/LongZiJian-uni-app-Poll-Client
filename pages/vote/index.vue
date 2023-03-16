@@ -8,15 +8,7 @@
 		</view>
 		<!-- 投票活动 -->
 		<view class="vote-activity-list">
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
-			<activity-box />
+			<activity-box v-for="item in activitys" :activity="item" />
 		</view>
 		<!-- 底部导航 -->
 		<tabbar :current="0"></tabbar>
@@ -25,6 +17,10 @@
 
 <script scoped>
 	import activityBox from '@/components/vote/activityBox.vue'
+	// API
+	import {
+		findPollActivitys
+	} from '@/api/poll_activity.js';
 
 	export default {
 		name: 'voteIndex',
@@ -33,7 +29,6 @@
 		},
 		data() {
 			return {
-				statusBarHeight: 0,
 				swiperList: [{
 					image: 'https://cdn.uviewui.com/uview/swiper/swiper2.png',
 					title: '昨夜星辰昨夜风，画楼西畔桂堂东',
@@ -44,12 +39,34 @@
 					image: 'https://cdn.uviewui.com/uview/swiper/swiper3.png',
 					title: '谁念西风独自凉，萧萧黄叶闭疏窗，沉思往事立残阳'
 				}],
-				isLoading: false,
-				searchStr: ''
+				// 手机状态栏的高度
+				statusBarHeight: 0,
+				activitys: [],
+				searchStr: '',
+				searchTimeOut: null
+			}
+		},
+		methods: {
+			async search() {
+				this.activitys = await findPollActivitys({
+					title: this.searchStr
+				});
+			}
+		},
+		watch: {
+			searchStr() {
+				if (this.searchTimeOut)
+					clearTimeout(this.searchTimeOut);
+				this.searchTimeOut = setTimeout(() => {
+					this.search();
+				}, 300);
 			}
 		},
 		onLoad() {
-			this.statusBarHeight = getApp().globalData.statusBarHeight
+			this.statusBarHeight = getApp().globalData.statusBarHeight;
+		},
+		onShow() {
+			this.search();
 		}
 	}
 </script>

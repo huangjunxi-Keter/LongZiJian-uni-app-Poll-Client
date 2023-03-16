@@ -46,7 +46,7 @@
 		{
 			"path": "pages/vote/activityDetailed",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "投票活动"
 			}
 		},
 		{

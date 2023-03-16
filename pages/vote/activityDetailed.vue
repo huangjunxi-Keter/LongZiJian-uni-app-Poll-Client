@@ -1,16 +1,27 @@
 <template>
 	<view class="page-content">
+		<u-sticky>
+			<view class="poll_state">您已为此活动投票</view>
+		</u-sticky>
 		<img :src="src" width="100%" />
-		<view class="title">投票活动标题投票活动标题投票活动标题投票活动标题投票活动标题投票活动标题投票活动标题投票活动标题</view>
+		<view class="title">{{ activity.activity_title }}</view>
 		<!-- 数据 -->
 		<view class="info-box">
 			<u-grid :border="true">
-				<u-grid-item v-for="(baseListItem,baseListIndex) in baseList" :key="baseListIndex">
-					<view class="grid-text">{{baseListItem.number}}</view>
-					<view class="grid-text">{{baseListItem.title}}</view>
+				<u-grid-item>
+					<view class="grid-text">{{ activity.item_count }}</view>
+					<view class="grid-text">项目数</view>
+				</u-grid-item>
+				<u-grid-item>
+					<view class="grid-text">{{ activity.poll_count }}</view>
+					<view class="grid-text">总票数</view>
+				</u-grid-item>
+				<u-grid-item>
+					<view class="grid-text">{{ activity.page_view }}</view>
+					<view class="grid-text">浏览量</view>
 				</u-grid-item>
 			</u-grid>
-			<view class="date">活动已结束</view>
+			<view class="date">{{ activity.state ? '活动已结束' : '活动进行中' }}</view>
 		</view>
 		<!-- 搜索 -->
 		<u-sticky>
@@ -21,23 +32,27 @@
 		<!-- 介绍 -->
 		<view class="introduce">
 			<view class="title">介绍</view>
-			这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍
+			{{ activity.activity_introduce }}
 		</view>
 		<!-- 投票项目 -->
 		<view class="vote-items">
-			<item-box />
-			<item-box />
-			<item-box />
-			<item-box />
-			<item-box />
-			<item-box />
-			<item-box />
+			<item-box v-for="item in activityItems" :activityItem="item" />
 		</view>
 	</view>
 </template>
 
 <script>
-	import itemBox from '@/components/vote/itemBox.vue'
+	import itemBox from '@/components/vote/itemBox.vue';
+	import {
+		getPollActivity,
+		updatePollActivity
+	} from '@/api/poll_activity.js';
+	import {
+		findPollActivityItems
+	} from '@/api/poll_activity_item.js';
+	import {
+		getRequestAddress
+	} from '@/utils/request.js';
 
 	export default {
 		name: 'activityDetailed',
@@ -46,31 +61,37 @@
 		},
 		data() {
 			return {
+				activity: {},
+				activityItems: [],
 				searchStr: '',
-				src: 'https://cdn.uviewui.com/uview/album/1.jpg',
-				baseList: [{
-						title: '已报名',
-						number: 35
-					},
-					{
-						title: '总票数',
-						number: 13887
-					},
-					{
-						title: '浏览量',
-						number: 22520
-					},
-				]
+				isPoll: false
+			}
+		},
+		computed: {
+			src() {
+				return `${getRequestAddress()}/image/${this.activity.cover_image}`
 			}
 		},
 		methods: {
-
+			async search(id) {
+				if (id) {
+					this.activity = await getPollActivity(id);
+					this.activity.page_view += 1;
+					let addPageViewResponse = await updatePollActivity(this.activity);
+					console.log('浏览量+1更新结果：' + addPageViewResponse);
+				} else {
+					this.activityItems = await findPollActivityItems({
+						activityId: this.activity.id,
+						title: this.searchStr
+					});
+				}
+			}
 		},
 		onLoad(option) {
-			console.log(option.vaId);
-			uni.setNavigationBarTitle({
-				title: '投票活动标题'
-			})
+			this.search(option.aid);
+		},
+		onShow() {
+			this.search();
 		}
 	}
 </script>
@@ -122,10 +143,17 @@
 	.introduce .title {
 		font-size: 25rpx;
 	}
-	
+
 	.vote-items {
 		display: flex;
 		justify-content: space-between;
 		flex-wrap: wrap;
+	}
+
+	.poll_state {
+		background-color: #f5fff0;
+		color: #5ac725;
+		padding: 10rpx;
+		text-align: center;
 	}
 </style>

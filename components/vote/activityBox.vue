@@ -1,23 +1,28 @@
 <template>
 	<view class="activity-box" @click="toDetailed">
 		<u--image :showLoading="true" :src="src" width="100%"></u--image>
-		<view class="title">投票活动标题</view>
-		<view class="pageview">1231231次浏览</view>
+		<view class="title">{{activity.activity_title}}</view>
+		<view class="pageview">{{ activity.page_view }}次浏览</view>
 	</view>
 </template>
 
 <script>
+	import {
+		getRequestAddress
+	} from '@/utils/request.js';
+
 	export default {
 		name: 'activityBox',
-		data() {
-			return {
-				src: 'https://cdn.uviewui.com/uview/album/1.jpg'
+		props: ['activity'],
+		computed: {
+			src() {
+				return `${getRequestAddress()}/image/${this.activity.cover_image}`;
 			}
 		},
 		methods: {
 			toDetailed() {
 				uni.navigateTo({
-					url: '/pages/vote/activityDetailed?vaId=123'
+					url: `/pages/vote/activityDetailed?aid=${this.activity.id}`
 				})
 			}
 		}

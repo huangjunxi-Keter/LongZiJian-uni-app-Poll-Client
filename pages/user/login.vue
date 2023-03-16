@@ -68,7 +68,15 @@
 					if (res) {
 						// 发起登录请求 并 保存返回值
 						let response = await login(this.loginFormData);
-						console.log(response);
+						if (response) {
+							getApp().globalData.loginUser = response;
+							uni.navigateBack();
+						} else {
+							uni.showToast({
+								title: '账号或密码错误',
+								icon: 'error'
+							});
+						}
 					}
 				});
 			}
