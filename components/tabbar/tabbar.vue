@@ -23,8 +23,8 @@
 					},
 					{
 						icon: 'plus-circle-fill',
-						title: '创建',
-						path: 'pages/vote/editActivity'
+						title: '创建活动',
+						path: 'pages/vote/addActivity'
 					},
 					{
 						icon: 'account',

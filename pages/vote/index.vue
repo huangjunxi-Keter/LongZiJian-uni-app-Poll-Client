@@ -49,7 +49,8 @@
 		methods: {
 			async search() {
 				this.activitys = await findPollActivitys({
-					title: this.searchStr
+					title: this.searchStr,
+					state: 0
 				});
 			}
 		},

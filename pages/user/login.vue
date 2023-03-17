@@ -70,6 +70,7 @@
 						let response = await login(this.loginFormData);
 						if (response) {
 							getApp().globalData.loginUser = response;
+							uni.setStorageSync("loginUserId", response.id.toString());
 							uni.navigateBack();
 						} else {
 							uni.showToast({

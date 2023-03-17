@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" :style="{'margin-top': `${statusBarHeight}rpx`}">
 		<!-- 表单 -->
 		<u--form ref="activityForm" :model="activityFormData" :rules="activityFormRules" labelPosition="top"
 			labelWidth="90">
@@ -8,7 +8,7 @@
 			</u-form-item>
 			<u-form-item label="活动封面" prop="cover_image" border-bottom>
 				<!-- 文件上传 -->
-				<u-upload :previewFullImage="true" :maxCount="1" :fileList="fileList" @afterRead="afterRead"
+				<u-upload :previewFullImage="true" :fileList="fileList" :maxCount="1" @afterRead="afterRead"
 					@delete="deletePic">
 				</u-upload>
 			</u-form-item>
@@ -22,6 +22,13 @@
 				<u-button type="error" text="重置" @click="clearForm"></u-button>
 			</u-form-item>
 		</u--form>
+		<!-- 底部导航 -->
+		<tabbar :current="1"></tabbar>
+		<!-- 确认模态框 -->
+		<u-modal ref="confirmModal" :show="showConfirmModal" :showCancelButton="true" :buttonReverse="true"
+			@confirm="onConsent" @cancel="showConfirmModal = false">
+			需要登录后才能创建活动，是否前往登录？
+		</u-modal>
 	</view>
 </template>
 
@@ -31,14 +38,15 @@
 		upload
 	} from '@/utils/request.js'
 	import {
-		getPollActivity,
-		updatePollActivity
+		createPollActivity
 	} from '@/api/poll_activity.js';
 
 	export default {
 		name: 'editActivity',
 		data() {
 			return {
+				loginUser: null,
+				showConfirmModal: false,
 				activityFormData: {
 					activity_title: '',
 					activity_introduce: '',
@@ -47,8 +55,7 @@
 					item_count: 0,
 					page_view: 0,
 					user_id: 0,
-					state: 1,
-					id: null
+					state: 1
 				},
 				activityFormRules: {
 					activity_title: [{
@@ -70,21 +77,10 @@
 						trigger: ['blur', 'change']
 					}]
 				},
-				fileList: [],
-				oldFileName: ''
+				fileList: []
 			}
 		},
 		methods: {
-			async loadPageData(id) {
-				let response = await getPollActivity(id);
-				Object.keys(this.activityFormData).forEach(key => {
-					this.activityFormData[key] = response[key];
-				});
-				this.fileList.push({
-					url: `${getRequestAddress()}/image/${response.cover_image}`
-				});
-				this.oldFileName = response.cover_image;
-			},
 			// 选择图片时
 			afterRead(event) {
 				let file = event.file;
@@ -96,57 +92,60 @@
 				this.fileList = [];
 				this.activityFormData.cover_image = "";
 			},
-			async uploadFile() {
-				let result = true;
-				if (this.oldFileName != this.activityFormData.cover_image) {
-					// 上传文件
-					let uploadFileName = await upload(
-						this.activityFormData.cover_image,
-						"/img/activity/", this.oldFileName);
-					// 是否成功
-					if (uploadFileName) {
-						this.activityFormData.cover_image = uploadFileName;
-					} else {
-						result = false;
-						uni.showToast({
-							title: '文件上传失败',
-							icon: 'error'
-						});
-					}
-				}
-				return result;
+			onConsent() {
+				this.showConfirmModal = false;
+				uni.navigateTo({
+					url: '/pages/user/login'
+				});
 			},
 			async submit() {
-				// 表单验证
-				this.$refs.activityForm.validate().then(async res => {
-					if (res) {
-						if (await this.uploadFile()) {
-							let response = await updatePollActivity(this.activityFormData);
-							if (response) {
-								uni.showToast({
-									title: '更新成功',
-									icon: 'success',
-									success() {
-										uni.navigateBack();
-									}
-								});
+				if (this.loginUser) {
+					// 表单验证
+					this.$refs.activityForm.validate().then(async res => {
+						if (res) {
+							// 上传
+							let uploadFileName = await upload(this.activityFormData.cover_image,
+								"/img/activity/", "");
+							// 是否成功
+							if (uploadFileName) {
+								this.activityFormData.cover_image = uploadFileName;
+								// 创建
+								let response = await createPollActivity(this.activityFormData);
+								// 是否成功
+								if (response) {
+									this.$refs.activityForm.resetFields();
+									this.fileList = [];
+									uni.showToast({
+										title: '创建成功',
+										icon: 'success'
+									});
+								} else {
+									uni.showToast({
+										title: '创建失败',
+										icon: 'error'
+									});
+								}
 							} else {
 								uni.showToast({
-									title: '更新失败',
+									title: '文件上传失败',
 									icon: 'error'
 								});
 							}
 						}
-					}
-				});
+					});
+				} else
+					this.showConfirmModal = true;
 			},
 			clearForm() {
 				this.$refs.activityForm.resetFields();
 				this.fileList = [];
 			}
 		},
-		onLoad(option) {
-			this.loadPageData(option.aid);
+		onShow() {
+			this.statusBarHeight = getApp().globalData.statusBarHeight
+			this.loginUser = getApp().globalData.loginUser;
+			if (this.loginUser)
+				this.activityFormData.user_id = this.loginUser.id;
 		}
 	}
 </script>

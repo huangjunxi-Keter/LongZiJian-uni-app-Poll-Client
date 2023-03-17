@@ -17,7 +17,7 @@
 			}
 		},
 		{
-			"path": "pages/vote/editActivity",
+			"path": "pages/vote/addActivity",
 			"style": {
 				"app-plus": {
 					"titleNView": false
@@ -57,34 +57,41 @@
 
 		},
 		{
+			"path": "pages/vote/editActivity",
+			"style": {
+				"navigationBarTitleText": "编辑活动"
+			}
+
+		},
+		{
 			"path": "pages/vote/userItemList",
 			"style": {
 				"navigationBarTitleText": "活动项目"
 			}
 
-		}, {
+		},
+		{
 			"path": "pages/vote/editItem",
 			"style": {
 				"navigationBarTitleText": ""
 			}
 
+		},
+		{
+			"path": "pages/vote/itemDetailed",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+
 		}
-	    ,{
-            "path" : "pages/vote/itemDetailed",
-            "style" :                                                                                    
-            {
-                "navigationBarTitleText": ""
-            }
-            
-        }
-    ],
+	],
 	"tabBar": {
 		"custom": false,
 		"list": [{
 				"pagePath": "pages/vote/index"
 			},
 			{
-				"pagePath": "pages/vote/editActivity"
+				"pagePath": "pages/vote/addActivity"
 			},
 			{
 				"pagePath": "pages/user/index"

@@ -1,6 +1,6 @@
 <template>
 	<view class="page-content">
-		<u-sticky>
+		<u-sticky v-if="isPoll">
 			<view class="poll_state">您已为此活动投票</view>
 		</u-sticky>
 		<img :src="src" width="100%" />
@@ -36,7 +36,7 @@
 		</view>
 		<!-- 投票项目 -->
 		<view class="vote-items">
-			<item-box v-for="item in activityItems" :activityItem="item" />
+			<item-box v-for="item in activityItems" :loginUser="loginUser" :activityItem="item" :isPoll="isPoll" />
 		</view>
 	</view>
 </template>
@@ -51,8 +51,12 @@
 		findPollActivityItems
 	} from '@/api/poll_activity_item.js';
 	import {
+		findPollLogsCount
+	} from '@/api/poll_log.js'
+	import {
 		getRequestAddress
 	} from '@/utils/request.js';
+	import search from '../../uni_modules/uview-ui/libs/config/props/search';
 
 	export default {
 		name: 'activityDetailed',
@@ -61,6 +65,7 @@
 		},
 		data() {
 			return {
+				loginUser: null,
 				activity: {},
 				activityItems: [],
 				searchStr: '',
@@ -73,25 +78,39 @@
 			}
 		},
 		methods: {
-			async search(id) {
+			async loadPageData(id) {
+				// 获取活动信息
 				if (id) {
 					this.activity = await getPollActivity(id);
+					// 更新活动浏览数
 					this.activity.page_view += 1;
 					let addPageViewResponse = await updatePollActivity(this.activity);
 					console.log('浏览量+1更新结果：' + addPageViewResponse);
-				} else {
-					this.activityItems = await findPollActivityItems({
-						activityId: this.activity.id,
-						title: this.searchStr
-					});
 				}
+				// 如果登录，判断是否有当前活动的投票记录
+				if (this.loginUser) {
+					this.isPoll = await findPollLogsCount({
+						uid: this.loginUser.id,
+						aid: this.activity.id
+					}) > 0;
+				}
+				// 获取活动项目信息
+				this.search();
+			},
+			async search() {
+				this.activityItems = await findPollActivityItems({
+					activityId: this.activity.id,
+					title: this.searchStr
+				});
 			}
 		},
 		onLoad(option) {
-			this.search(option.aid);
+			this.loginUser = getApp().globalData.loginUser;
+			this.loadPageData(option.aid);
 		},
 		onShow() {
-			this.search();
+			this.loginUser = getApp().globalData.loginUser;
+			this.loadPageData();
 		}
 	}
 </script>

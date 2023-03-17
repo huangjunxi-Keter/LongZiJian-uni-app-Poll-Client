@@ -1,46 +1,123 @@
 <template>
 	<view class="background">
-		<u--image :showLoading="true" :src="src" width="100%"></u--image>
+		<u-sticky v-if="isPoll">
+			<view class="poll_state">您已为此活动投票</view>
+		</u-sticky>
+		<u--image :showLoading="true" :src="activitySrc" width="100%"></u--image>
 		<view class="content">
 			<view class="top-box">
-				<view class="title">标题</view>
-				<u-grid class="info" :border="false">
+				<view class="title">{{ activityItem.item_title }}</view>
+				<u-grid class="info" :border="false" :col="1">
 					<u-grid-item>
-						<text class="number">1</text>
-						<text class="text">排名</text>
-					</u-grid-item>
-					<u-grid-item>
-						<text class="number">1</text>
+						<text class="number">{{ activityItem.item_poll }}</text>
 						<text class="text">票数</text>
-					</u-grid-item>
-					<u-grid-item>
-						<text class="number">1</text>
-						<text class="text">距上一名</text>
 					</u-grid-item>
 				</u-grid>
 			</view>
 			<view class="introduce-box">
 				<view class="title">选手作品</view>
-				<u--image class="item-image" :showLoading="true" :src="src" width="100%"></u--image>
-				<view class="introduce-text">
-					这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍这是介绍
-				</view>
+				<u--image class="item-image" :showLoading="true" :src="itemSrc" width="100%"></u--image>
+				<view class="introduce-text">{{ activityItem.item_introduce }}</view>
 			</view>
-			<u-button type="primary" text="为他投票" />
+			<u-button v-if="!isPoll" type="primary" text="为他投票" @click="showConfirmModal = true" />
 		</view>
+		<!-- 确认模态框 -->
+		<u-modal ref="confirmModal" :show="showConfirmModal" :showCancelButton="true" :buttonReverse="true"
+			:asyncClose="true" @confirm="onConsent" @cancel="showConfirmModal = false">
+			{{ confirmModalContent }}
+		</u-modal>
 	</view>
 </template>
 
 <script>
+	import {
+		getRequestAddress
+	} from '@/utils/request.js';
+	import {
+		getPollActivity
+	} from '@/api/poll_activity.js';
+	import {
+		getPollActivityItem
+	} from '@/api/poll_activity_item.js';
+	import {
+		findPollLogsCount,
+		createPollLog
+	} from '@/api/poll_log.js';
+
 	export default {
 		name: 'itemDetailed',
 		data() {
 			return {
-				src: 'https://cdn.uviewui.com/uview/album/1.jpg'
+				loginUser: null,
+				activity: {},
+				activityItem: {},
+				isPoll: false,
+				showConfirmModal: false,
+				confirmModalContent: '',
+			}
+		},
+		computed: {
+			activitySrc() {
+				return `${getRequestAddress()}/image/${this.activity.cover_image}`;
+			},
+			itemSrc() {
+				return `${getRequestAddress()}/image/${this.activityItem.item_image}`;
 			}
 		},
 		methods: {
+			async LoadPageData(id) {
+				if (id)
+					this.activityItem = await getPollActivityItem(id);
+				uni.setNavigationBarTitle({
+					title: this.activityItem.item_title
+				});
+				this.activity = await getPollActivity(this.activityItem.activity_id);
+				if (this.loginUser) {
+					this.confirmModalContent = `要为【${this.activityItem.item_title}】投票吗？`;
+					this.isPoll = await findPollLogsCount({
+						uid: this.loginUser.id,
+						aid: this.activity.id
+					}) > 0;
+				} else {
+					this.confirmModalContent = "需要登录后才能投票，是否前往登录？";
+				}
+			},
+			async onConsent() {
+				if (this.loginUser) {
+					// 创建投票记录
+					let response = await createPollLog({
+						user_id: this.loginUser.id,
+						activity_id: this.activityItem.activity_id,
+						activity_item_id: this.activityItem.id
+					});
 
+					// 成功：刷新页面
+					if (response) {
+						uni.redirectTo({
+							url: `/pages/vote/itemDetailed?aiid=${this.activityItem.id}`
+						});
+					} else {
+						this.showConfirmModal = false;
+						uni.showToast({
+							title: '投票失败',
+							icon: 'error'
+						});
+					}
+				} else {
+					this.showConfirmModal = false;
+					uni.navigateTo({
+						url: '/pages/user/login'
+					});
+				}
+			}
+		},
+		onLoad(option) {
+			this.loginUser = getApp().globalData.loginUser;
+			this.LoadPageData(option.aiid);
+		},
+		onShow() {
+			this.loginUser = getApp().globalData.loginUser;
+			this.LoadPageData();
 		}
 	}
 </script>
@@ -92,9 +169,16 @@
 	.item-image {
 		margin: 15rpx 0;
 	}
-	
+
 	.introduce-text {
 		font-size: 22rpx;
 		color: #333333;
+	}
+
+	.poll_state {
+		background-color: #f5fff0;
+		color: #5ac725;
+		padding: 10rpx;
+		text-align: center;
 	}
 </style>
