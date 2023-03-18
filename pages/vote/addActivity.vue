@@ -34,12 +34,14 @@
 
 <script>
 	import {
-		getRequestAddress,
-		upload
+		getRequestAddress
 	} from '@/utils/request.js'
 	import {
 		createPollActivity
 	} from '@/api/poll_activity.js';
+	import {
+		upload
+	} from '@/api/system.js'
 
 	export default {
 		name: 'editActivity',

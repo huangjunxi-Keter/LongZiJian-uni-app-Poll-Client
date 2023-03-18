@@ -1,7 +1,7 @@
 <template>
 	<view class="background">
 		<view class="content">
-			<view class="title">注册</view>
+			<view class="title">重置密码</view>
 			<u--form ref="form" :model="formData" :rules="formRules">
 				<u-form-item borderBottom prop="email">
 					<u--input v-model="formData.email" type="email" placeholder="请输入邮箱" prefixIcon="email" clearable
@@ -11,6 +11,7 @@
 					<u-input v-model="formData.verificationCode" placeholder="请输入验证码" prefixIcon="email-fill"
 						border="none">
 						<template slot="suffix">
+							<!-- <u-code ref="uCode" @change="codeChange" seconds="20" changeText="X秒重新获取哈哈哈"></u-code> -->
 							<u-button @click="sendCode" text="获取验证码" size="mini" :loading="getCodeBtnLoad" />
 						</template>
 					</u-input>
@@ -28,7 +29,7 @@
 				</u-form-item>
 			</u--form>
 			<view class="other-box">
-				<view @click="toLogin">返回登录</view>
+				<view @click="toLogin">已有账户前往登录</view>
 			</view>
 		</view>
 	</view>
@@ -41,11 +42,11 @@
 	} from '@/api/system.js';
 	import {
 		getUserDataByEmail,
-		createUser
+		updateUser
 	} from '@/api/user.js';
 
 	export default {
-		name: 'register',
+		name: 'ForgotPassword',
 		data() {
 			return {
 				formData: {
@@ -70,8 +71,8 @@
 						trigger: ['blur', 'change']
 					}, {
 						validator: async (rule, value, callback) => {
-							if (await getUserDataByEmail(value))
-								callback(new Error('邮箱已存在'));
+							if (!await getUserDataByEmail(value))
+								callback(new Error('该邮箱还未注册'));
 						},
 						trigger: ['blur']
 					}],
@@ -85,7 +86,7 @@
 						message: '请确认密码',
 						trigger: ['blur', 'change']
 					}, {
-						validator: (rule, value, callback) => {
+						validator: async (rule, value, callback) => {
 							if (value != this.formData.password)
 								callback(new Error('两次密码输入不一致'))
 						},
@@ -95,13 +96,14 @@
 						required: true,
 						message: '请输入验证码'
 					}, {
-						validator: (rule, value, callback) => {
+						validator: async (rule, value, callback) => {
 							if (value != this.verificationCode)
 								callback(new Error('验证码错误'))
 						},
 						trigger: ['blur', 'change']
 					}]
 				},
+				userData: null,
 				verificationCode: '',
 				getCodeBtnLoad: false
 			}
@@ -109,7 +111,8 @@
 		methods: {
 			async sendCode() {
 				this.$refs.form.validateField('email', async (errorArray) => {
-					if (errorArray.length === 0 && !await getUserDataByEmail(this.formData.email)) {
+					this.userData = await getUserDataByEmail(this.formData.email);
+					if (errorArray.length === 0 && this.userData) {
 						this.getCodeBtnLoad = true;
 						this.verificationCode = await getVerificationCode();
 
@@ -144,14 +147,14 @@
 			submit() {
 				this.$refs.form.validate().then(async (res) => {
 					if (res) {
-						this.formData.nickname = this.formData.email;
-						let response = await createUser(this.formData);
+						this.userData.password = this.formData.password;
+						let response = await updateUser(this.userData);
 						if (response)
 							this.toLogin();
 						else
 							uni.showToast({
 								icon: 'error',
-								title: '注册失败'
+								title: '重置失败'
 							});
 					}
 				})

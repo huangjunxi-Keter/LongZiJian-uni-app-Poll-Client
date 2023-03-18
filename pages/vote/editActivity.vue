@@ -27,13 +27,15 @@
 
 <script>
 	import {
-		getRequestAddress,
-		upload
+		getRequestAddress
 	} from '@/utils/request.js'
 	import {
 		getPollActivity,
 		updatePollActivity
 	} from '@/api/poll_activity.js';
+	import {
+		upload
+	} from '@/api/system.js'
 
 	export default {
 		name: 'editActivity',

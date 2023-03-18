@@ -32,9 +32,11 @@
 		createPollActivityItem
 	} from '../../api/poll_activity_item';
 	import {
-		getRequestAddress,
-		upload
+		getRequestAddress
 	} from '@/utils/request.js'
+	import {
+		upload
+	} from '@/api/system.js'
 
 	export default {
 		name: 'editItem',

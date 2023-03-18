@@ -17,7 +17,7 @@
 			</u--form>
 			<view class="other-box">
 				<view @click="toRegister">注册用户</view>
-				<view>忘记密码</view>
+				<view @click="toForgotPassword">忘记密码</view>
 			</view>
 		</view>
 	</view>
@@ -60,6 +60,11 @@
 			toRegister() {
 				uni.navigateTo({
 					url: '/pages/user/register'
+				})
+			},
+			toForgotPassword() {
+				uni.navigateTo({
+					url: '/pages/user/forgotPassword'
 				})
 			},
 			async login() {

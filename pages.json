@@ -23,7 +23,6 @@
 					"titleNView": false
 				}
 			}
-
 		},
 		{
 			"path": "pages/user/login",
@@ -32,7 +31,6 @@
 				"navigationBarTextStyle": "white",
 				"navigationBarBackgroundColor": "#3c9cff"
 			}
-
 		},
 		{
 			"path": "pages/user/register",
@@ -41,7 +39,14 @@
 				"navigationBarTextStyle": "white",
 				"navigationBarBackgroundColor": "#3c9cff"
 			}
-
+		},
+		{
+			"path": "pages/user/forgotPassword",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationBarTextStyle": "white",
+				"navigationBarBackgroundColor": "#3c9cff"
+			}
 		},
 		{
 			"path": "pages/vote/activityDetailed",
@@ -54,28 +59,24 @@
 			"style": {
 				"navigationBarTitleText": "我的活动"
 			}
-
 		},
 		{
 			"path": "pages/vote/editActivity",
 			"style": {
 				"navigationBarTitleText": "编辑活动"
 			}
-
 		},
 		{
 			"path": "pages/vote/userItemList",
 			"style": {
 				"navigationBarTitleText": "活动项目"
 			}
-
 		},
 		{
 			"path": "pages/vote/editItem",
 			"style": {
 				"navigationBarTitleText": ""
 			}
-
 		},
 		{
 			"path": "pages/vote/itemDetailed",
@@ -83,8 +84,21 @@
 				"navigationBarTitleText": ""
 			}
 
+		}, {
+			"path": "pages/log/pollLogList",
+			"style": {
+				"navigationBarTitleText": "投票记录"
+			}
 		}
-	],
+	    ,{
+            "path" : "pages/user/userInfo",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "用户详情"
+            }
+            
+        }
+    ],
 	"tabBar": {
 		"custom": false,
 		"list": [{

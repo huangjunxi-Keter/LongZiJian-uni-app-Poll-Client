@@ -3,9 +3,9 @@
 		<view class="avatar-box">
 			<u-row>
 				<u-col :span="3">
-					<u-avatar font-size="40" size="75" :src="src"></u-avatar>
+					<u-avatar size="75" :src="src"></u-avatar>
 				</u-col>
-				<u-col :span="9" @click="toLogin">
+				<u-col :span="9" @click="changePage">
 					<u-row>
 						<u-col>
 							<text class="nickname">{{ loginUser.nickname }}</text>
@@ -21,8 +21,8 @@
 		</view>
 		<u-cell-group>
 			<u-cell icon="grid" title="我的活动" isLink :url="userActivityURL" />
-			<u-cell icon="clock" title="投票记录" isLink />
-			<u-cell icon="close-circle" title="退出登录" @click="showConfirmModal = true" />
+			<u-cell icon="clock" title="投票记录" isLink :url="pollLogListURL" />
+			<u-cell v-if="loginUser.id" icon="close-circle" title="退出登录" @click="showConfirmModal = true" />
 		</u-cell-group>
 		<!-- 底部导航 -->
 		<tabbar :current="2"></tabbar>
@@ -48,6 +48,7 @@
 					email: '',
 				},
 				userActivityURL: '',
+				pollLogListURL: '',
 				showConfirmModal: false
 			}
 		},
@@ -57,17 +58,23 @@
 			}
 		},
 		methods: {
-			toLogin() {
+			changePage() {
 				if (!this.loginUser.id)
 					uni.navigateTo({
 						url: '/pages/user/login'
-					})
+					});
+				else
+					uni.navigateTo({
+						url: '/pages/user/userInfo'
+					});
 			},
 			onConsent() {
 				this.loginUser = {
 					nickname: '点击登录',
 					email: '',
 				};
+				this.userActivityURL = '';
+				this.pollLogListURL = '';
 				getApp().globalData.loginUser = null;
 				uni.removeStorageSync("loginUserId");
 				this.showConfirmModal = false;
@@ -81,6 +88,7 @@
 			if (loginUser) {
 				this.loginUser = loginUser;
 				this.userActivityURL = "/pages/vote/userActivityList";
+				this.pollLogListURL = "/pages/log/pollLogList";
 			} else {
 				this.loginUser = {
 					nickname: '点击登录',
